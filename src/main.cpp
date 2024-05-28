@@ -16,9 +16,7 @@ void setup() {
   portI2C(dir,dato)
 */
   portUART_begin();
-  terminalInit();
-  keypadInit();
-  displayInit();
+  portI2C_begin();
 }
 
 void loop() {

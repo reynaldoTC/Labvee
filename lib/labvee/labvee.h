@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PCF8575.h"
+#include "i2c.h"
 #include <Arduino.h>
 
 #define D1_A 0
@@ -24,28 +24,15 @@
 #define DISPLAY_U 1
 #define DISPLAY_D 2
 
-#define ONE 1
-#define TWO 2
-#define THREE 3
-#define FOUR 4
-
-#define UNO 1
-#define DOS 2
-#define TRES 3
-#define CUATRO 4
-
 #define portUART Serial
 #define portUART_begin() Serial.begin(115200)
 
 uint8_t portDIGITAL(uint8_t terminal, uint8_t pin);
 void portDIGITAL(uint8_t terminal, uint8_t pin, uint8_t state);
-void terminalInit();
 
-void keypadInit();
 uint8_t keypadWaitValue();
 uint8_t keypadGetValue();
 
-void displayInit();
 void displayReset(uint8_t display);
 void displayReset();
 void displayWrite(uint8_t display, uint8_t value);

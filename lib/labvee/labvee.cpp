@@ -1,27 +1,23 @@
 #include "labvee.h"
 
-PCF8575 keypad(0x20);
-PCF8575 labveeIO(0x21);
-PCF8575 display_7seg(0x22);
+#define KEYPAD_ADDRESS 0x20
+#define TERMINAL_ADDRESS 0x21
+#define DISPLAY_ADDRESS 0x22
+
+uint16_t display_value = 0;
+uint16_t terminal_value = 0;
 
 uint8_t portDIGITAL(uint8_t terminal, uint8_t pin)
 {
-  return labveeIO.read(((terminal - 1) * 4) + pin);
+  uint16_t actual_value = portI2C_read16(TERMINAL_ADDRESS);
+  uint8_t phisical_pin = ((terminal - 1) * 4) + pin;
+  return (actual_value & (1 << phisical_pin));
 }
 
 void portDIGITAL(uint8_t terminal, uint8_t pin, uint8_t state)
 {
-  labveeIO.write((((terminal - 1) * 4) + pin), state);
-}
-
-void terminalInit()
-{
-  labveeIO.begin(0);
-}
-
-void keypadInit()
-{
-  keypad.begin(0);
+  bitWrite(terminal_value, (((terminal - 1) * 4) + pin), state);
+  portI2C_write16(TERMINAL_ADDRESS, terminal_value);
 }
 
 uint8_t keypadWaitValue()
@@ -38,31 +34,30 @@ uint8_t keypadGetValue()
 {
   for (uint8_t pinO = 0; pinO < 4; pinO++)
   {
-    keypad.write16(1 << pinO);
-    uint16_t value = keypad.read16();
-    if (value & (1 << 4)) return (pinO * 4) + 1;
-    if (value & (1 << 5)) return (pinO * 4) + 2;
-    if (value & (1 << 6)) return (pinO * 4) + 3;
-    if (value & (1 << 7)) return (pinO * 4) + 4;
+    portI2C_write16(KEYPAD_ADDRESS, (1 << pinO));
+    uint16_t value = portI2C_read16(KEYPAD_ADDRESS);
+    if (value & (1 << 4))
+      return (pinO * 4) + 1;
+    if (value & (1 << 5))
+      return (pinO * 4) + 2;
+    if (value & (1 << 6))
+      return (pinO * 4) + 3;
+    if (value & (1 << 7))
+      return (pinO * 4) + 4;
   }
   return 0;
-}
-
-void displayInit()
-{
-  display_7seg.begin(0);
 }
 
 void displayReset(uint8_t display)
 {
   uint8_t aux = (display == 2) ? 8 : 0;
-  uint16_t valueo = (0x00FF << aux) & display_7seg.valueOut();
-  display_7seg.write16(valueo);
+  display_value &= (0x00FF << aux);
+  portI2C_write16(DISPLAY_ADDRESS, display_value);
 }
 
 void displayReset()
 {
-  display_7seg.write16(0);
+  portI2C_write16(DISPLAY_ADDRESS, 0);
 }
 
 void displayWrite(uint8_t display, uint8_t value)
@@ -71,8 +66,8 @@ void displayWrite(uint8_t display, uint8_t value)
   if (value < 10)
   {
     uint8_t aux = (display == 2) ? 8 : 0;
-    uint16_t valueo = dv[value] | ((0x00FF << aux) & display_7seg.valueOut());
-    display_7seg.write16(valueo);
+    display_value = dv[value] | ((0x00FF << aux) & display_value);
+    portI2C_write16(DISPLAY_ADDRESS, display_value);
   }
 }
 
@@ -83,37 +78,25 @@ void displayWrite(uint8_t value)
   {
     uint8_t dec = value / 10;
     uint8_t unit = value % 10;
-    uint16_t valueo = dv[unit] | (dv[dec] << 8);
-    display_7seg.write16(valueo);
+    display_value = dv[unit] | (dv[dec] << 8);
+    portI2C_write16(DISPLAY_ADDRESS, display_value);
   }
 }
 
 void displayDP(uint8_t display, uint8_t value)
 {
-  if (display == 1)
-  {
-    display_7seg.write(D1_DP, value);
-  }
-  else if (display == 2)
-  {
-    display_7seg.write(D2_DP, value);
-  }
+  uint8_t aux = (display == 2) ? D2_DP : D1_DP;
+  bitWrite(display_value, aux, value);
+  portI2C_write16(DISPLAY_ADDRESS, display_value);
 }
 
 void displaySegment(uint8_t display, uint8_t segment, uint8_t value)
 {
-  if (display == 1)
-  {
-    const uint8_t pins[8] = {D1_A, D1_B, D1_C, D1_D, D1_E, D1_F, D1_G, D1_DP};
-    display_7seg.write(pins[segment], value);
-  }
-  else if (display == 2)
-  {
-    const uint8_t pins[8] = {D2_A, D2_B, D2_C, D2_D, D2_E, D2_F, D2_G, D2_DP};
-    display_7seg.write(pins[segment], value);
-  }
+  uint8_t aux = (display == 2) ? 8 : 0;
+  bitWrite(display_value, aux + segment, value);
+  portI2C_write16(DISPLAY_ADDRESS, display_value);
 }
 
-void displaySegment(uint8_t display, uint8_t A, uint8_t B, uint8_t C, uint8_t D, uint8_t E, uint8_t F, uint8_t G, uint8_t DP) {
-
+void displaySegment(uint8_t display, uint8_t A, uint8_t B, uint8_t C, uint8_t D, uint8_t E, uint8_t F, uint8_t G, uint8_t DP)
+{
 }

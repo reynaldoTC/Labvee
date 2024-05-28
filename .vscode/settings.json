@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "io.h": "c",
+        "common.h": "c",
+        "version.h": "c",
+        "fuse.h": "c",
+        "portpins.h": "c",
+        "iom328p.h": "c"
+    }
+}
