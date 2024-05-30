@@ -16,7 +16,8 @@ uint8_t portI2C_read8(const uint8_t address)
     return data_in;
 }
 
-uint8_t portI2C_write8(const uint8_t address, const uint8_t value) {
+uint8_t portI2C_write8(const uint8_t address, const uint8_t value)
+{
     Wire.beginTransmission(address);
     Wire.write(value);
     return Wire.endTransmission();
@@ -42,9 +43,11 @@ uint8_t portI2C_write16(const uint8_t address, const uint16_t value)
     return Wire.endTransmission();
 }
 
-uint8_t portI2C_readBytes(const uint8_t address, uint8_t *buffer, size_t len) {
+uint8_t portI2C_readBytes(const uint8_t address, uint8_t *buffer, size_t len)
+{
     size_t recv = Wire.requestFrom(address, len);
-    if (recv != len) return false;
+    if (recv != len)
+        return false;
     for (size_t i = 0; i < len; i++)
     {
         buffer[i] = Wire.read();
@@ -52,5 +55,18 @@ uint8_t portI2C_readBytes(const uint8_t address, uint8_t *buffer, size_t len) {
     return true;
 }
 
-uint8_t portI2C_writeBytes(const uint8_t address, uint8_t *buffer, size_t len) {}
-uint8_t portI2C_writeBytes(const uint8_t address, uint8_t *buffer, size_t len, uint8_t *prefix_buffer, size_t prefix_len) {}
+uint8_t portI2C_writeBytes(const uint8_t address, uint8_t *value, size_t len)
+{
+    Wire.beginTransmission(address);
+    Wire.write(value, len);
+    return Wire.endTransmission();
+}
+
+uint8_t portI2C_writeBytes(const uint8_t address, uint8_t *value, size_t len,
+                           uint8_t *prefix_value, size_t prefix_len)
+{
+    Wire.beginTransmission(address);
+    Wire.write(value, len);
+    Wire.write(prefix_value, prefix_len);
+    return Wire.endTransmission();
+}

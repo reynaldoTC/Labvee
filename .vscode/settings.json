@@ -6,5 +6,6 @@
         "fuse.h": "c",
         "portpins.h": "c",
         "iom328p.h": "c"
-    }
+    },
+    "editor.fontFamily": "'Droid Sans Mono', 'monospace', monospace"
 }
